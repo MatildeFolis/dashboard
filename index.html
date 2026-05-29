@@ -195,7 +195,7 @@ function shortKey(h) {
   if (s.includes('fecha del evento')) return 'fecha';
   if (s.includes('horario del evento')) return 'horario';
   if (s.includes('ubicaci')) return 'ubicacion';
-  if (s.includes('m sica') || s.includes('musica') || s.includes('canci')) return 'musica';
+  if (s.includes('m sica') || s.includes('musica') || s.includes('canci') || s.includes('fondo') || s.includes('m') && s.includes('sica')) return 'musica';
   if (s.includes('cuenta regresiva')) return 'cuenta_reg';
   if (s.includes('datos para regalos')) return 'regalos';
   if (s.includes('dress code')) return 'dresscode';
@@ -231,6 +231,8 @@ async function loadData() {
     allRows = Object.values(rows).map((row, i) => {
       const obj = {};
       keys.forEach((k, j) => { if (k) obj[k] = (row[j] || '').toString().trim(); });
+      // Fallback: columna I (índice 8) es música de fondo
+      if (!obj.musica && row[8]) obj.musica = row[8].toString().trim();
       obj._id = i + '_' + (obj.nombre || 'x').replace(/\s/g, '').substring(0, 8);
       return obj;
     }).filter(r => r.nombre);
