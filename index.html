@@ -17,9 +17,11 @@
     --border: rgba(44,44,40,0.12);
     --border-strong: rgba(44,44,40,0.22);
     --white: #FFFFFF;
-    --s-nuevo: #6BA3BE;
+    --s-nuevo: #E8923A;
     --s-proceso: #D4A84B;
-    --s-revision: #9B8EC4;
+    --s-revision: #7A9ACC;
+    --s-pendiente: #C0392B;
+    --s-faltan: #9B8EC4;
     --s-entregado: #6BAA7A;
     --s-pausado: #A0A098;
   }
@@ -155,7 +157,9 @@
       <option value="proceso">En proceso</option>
       <option value="revision">En revisión</option>
       <option value="entregado">Entregado</option>
-      <option value="pausado">Pausado</option>
+      <option value="espera">En espera</option>
+      <option value="pendiente">Pago pendiente</option>
+      <option value="faltan">Faltan datos</option>
     </select>
   </div>
 
@@ -165,7 +169,11 @@
     <div class="legend-item"><div class="legend-dot" style="background:var(--s-proceso)"></div>En proceso</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--s-revision)"></div>En revisión</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--s-entregado)"></div>Entregado</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--s-pausado)"></div>Pausado</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--s-pausado)"></div>En espera</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--s-pendiente)"></div>Pago pendiente</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--s-faltan)"></div>Faltan datos</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--s-pendiente)"></div>Pago pendiente</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--s-faltan)"></div>Faltan datos</div>
   </div>
 
   <div id="grid-area"><div class="loading">Cargando pedidos...</div></div>
@@ -245,7 +253,7 @@ async function loadData() {
 
 function getState(id) { return states[id] || 'nuevo'; }
 function stateColor(s) {
-  const m = { nuevo: 'var(--s-nuevo)', proceso: 'var(--s-proceso)', revision: 'var(--s-revision)', entregado: 'var(--s-entregado)', pausado: 'var(--s-pausado)' };
+  const m = { nuevo: 'var(--s-nuevo)', proceso: 'var(--s-proceso)', revision: 'var(--s-revision)', entregado: 'var(--s-entregado)', espera: 'var(--s-pausado)', pendiente: 'var(--s-pendiente)', faltan: 'var(--s-faltan)' };
   return m[s] || m.nuevo;
 }
 
@@ -335,7 +343,9 @@ function cardHTML(r) {
         <option value="proceso"${st==='proceso'?' selected':''}>En proceso</option>
         <option value="revision"${st==='revision'?' selected':''}>En revisión</option>
         <option value="entregado"${st==='entregado'?' selected':''}>Entregado</option>
-        <option value="pausado"${st==='pausado'?' selected':''}>Pausado</option>
+        <option value="espera"${st==='espera'?' selected':''}>En espera</option>
+        <option value="pendiente"${st==='pendiente'?' selected':''}>Pago pendiente</option>
+        <option value="faltan"${st==='faltan'?' selected':''}>Faltan datos</option>
       </select>
     </div>
   </div>`;
@@ -385,7 +395,9 @@ function openModal(id) {
           <option value="proceso"${st==='proceso'?' selected':''}>En proceso</option>
           <option value="revision"${st==='revision'?' selected':''}>En revisión</option>
           <option value="entregado"${st==='entregado'?' selected':''}>Entregado</option>
-          <option value="pausado"${st==='pausado'?' selected':''}>Pausado</option>
+          <option value="espera"${st==='espera'?' selected':''}>En espera</option>
+          <option value="pendiente"${st==='pendiente'?' selected':''}>Pago pendiente</option>
+          <option value="faltan"${st==='faltan'?' selected':''}>Faltan datos</option>
         </select>
       </div>
 
