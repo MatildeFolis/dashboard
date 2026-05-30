@@ -22,6 +22,7 @@
     --s-revision: #9B8EC4;
     --s-entregado: #6BAA7A;
     --s-pausado: #CC44BB;
+    --s-pendiente: #C0392B;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Jost', sans-serif; background: var(--cream); color: var(--text); font-size: 14px; line-height: 1.6; }
@@ -155,7 +156,8 @@
       <option value="proceso">Preliminar</option>
       <option value="revision">En revisión</option>
       <option value="entregado">Entregada</option>
-      <option value="pausado">Pausado</option>
+      <option value="pausado">Quedan para más adelante</option>
+      <option value="pendiente">Esperando pago</option>
     </select>
   </div>
 
@@ -222,8 +224,12 @@ function shortKey(h) {
 async function loadData() {
   document.getElementById('grid-area').innerHTML = '<div class="loading">Cargando pedidos...</div>';
   try {
-    const res = await fetch(API);
+    const [res, resStates] = await Promise.all([
+      fetch(API),
+      fetch(API + '?action=getStates').catch(()=>null)
+    ]);
     if (!res.ok) throw new Error('Error ' + res.status);
+    if(resStates){try{const js=await resStates.json();if(js.states){states=js.states;}if(js.notes){notes=js.notes;}}catch(e){}}
     const json = await res.json();
     const headers = json.headers;
     const rows = json.rows;
@@ -243,7 +249,7 @@ async function loadData() {
 
 function getState(id) { return states[id] || 'nuevo'; }
 function stateColor(s) {
-  const m = { nuevo: 'var(--s-nuevo)', proceso: 'var(--s-proceso)', revision: 'var(--s-revision)', entregado: 'var(--s-entregado)', pausado: 'var(--s-pausado)' };
+  const m = { nuevo: 'var(--s-nuevo)', proceso: 'var(--s-proceso)', revision: 'var(--s-revision)', entregado: 'var(--s-entregado)', pausado: 'var(--s-pausado)', pendiente: 'var(--s-pendiente)' };
   return m[s] || m.nuevo;
 }
 
@@ -333,7 +339,8 @@ function cardHTML(r) {
         <option value="proceso"${st==='proceso'?' selected':''}>Preliminar</option>
         <option value="revision"${st==='revision'?' selected':''}>En revisión</option>
         <option value="entregado"${st==='entregado'?' selected':''}>Entregada</option>
-        <option value="pausado"${st==='pausado'?' selected':''}>Pausado</option>
+        <option value="pausado"${st==='pausado'?' selected':''}>Quedan para más adelante</option>
+        <option value="pendiente"${st==='pendiente'?' selected':''}>Esperando pago</option>
       </select>
     </div>
   </div>`;
@@ -386,7 +393,8 @@ function openModal(id) {
           <option value="proceso"${st==='proceso'?' selected':''}>Preliminar</option>
           <option value="revision"${st==='revision'?' selected':''}>En revisión</option>
           <option value="entregado"${st==='entregado'?' selected':''}>Entregada</option>
-          <option value="pausado"${st==='pausado'?' selected':''}>Pausado</option>
+          <option value="pausado"${st==='pausado'?' selected':''}>Quedan para más adelante</option>
+          <option value="pendiente"${st==='pendiente'?' selected':''}>Esperando pago</option>
         </select>
       </div>
 
