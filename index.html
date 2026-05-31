@@ -156,6 +156,11 @@
       <option value="Clásica">Clásica</option>
       <option value="Desde Cero">Desde Cero</option>
     </select>
+    <select id="f-cargo" onchange="render()">
+      <option value="">Mati y Ale</option>
+      <option value="Mati">Solo Mati</option>
+      <option value="Ale">Solo Ale</option>
+    </select>
     <select id="f-estado" onchange="render()">
       <option value="">Todos los estados</option>
       <option value="nuevo">Por arrancar</option>
@@ -173,6 +178,7 @@
     <div class="legend-item"><div class="legend-dot" style="background:var(--s-revision)"></div>En revisión</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--s-entregado)"></div>Entregada</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--s-pausado)"></div>Quedan para más adelante</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--s-pendiente)"></div>Esperando pago</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--s-pendiente)"></div>Esperando pago</div>
   </div>
 
@@ -301,9 +307,11 @@ function render() {
   const q = document.getElementById('search').value.toLowerCase();
   const ft = document.getElementById('f-tipo').value;
   const fp = document.getElementById('f-plan').value;
+  const fc = document.getElementById('f-cargo') ? document.getElementById('f-cargo').value : '';
   const fe = document.getElementById('f-estado').value;
   let rows = allRows.filter(r => {
     if (ft && !(r.tipo || '').includes(ft)) return false;
+    if (fc && getCargo(r._id) !== fc) return false;
     if (fp && !(r.plan || '').toLowerCase().includes(fp.toLowerCase())) return false;
     if (fe && getState(r._id) !== fe) return false;
     if (q) { const h = [r.nombre, r.modelo, r.tipo, r.protagonistas, r.plan, r.fecha].join(' ').toLowerCase(); if (!h.includes(q)) return false; }
