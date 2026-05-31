@@ -70,6 +70,7 @@
   .b-desde { background: #FDF0E0; color: #7A4A10; }
   .b-otro { background: var(--warm); color: var(--text-muted); }
 
+  .cargo-select { font-family: 'Jost', sans-serif; font-size: 11px; padding: 3px 7px; border-radius: 20px; border: 0.5px solid var(--border-strong); background: var(--cream); color: var(--text); cursor: pointer; outline: none; }
   .status-select { font-family: 'Jost', sans-serif; font-size: 11px; padding: 3px 8px; border-radius: 20px; border: 0.5px solid var(--border-strong); background: var(--cream); color: var(--text); cursor: pointer; outline: none; }
 
   .overlay { position: fixed; inset: 0; background: rgba(44,44,40,0.4); z-index: 200; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; overflow-y: auto; }
@@ -191,10 +192,12 @@
 const API = 'https://script.google.com/macros/s/AKfycbzaFI31JOVmmqG8yVVR9FyNWJX42usHCo0BWHz7YBx131KOX-Wr2d8i8WCsuZHQdqmS/exec';
 let allRows = [];
 let states = {};
+let cargo = {};
 let notes = {};
 
 function loadLocal() {
   try { states = JSON.parse(localStorage.getItem('ia_states') || '{}'); } catch(e) { states = {}; }
+  try { cargo = JSON.parse(localStorage.getItem('ia_cargo') || '{}'); } catch(e) { cargo = {}; }
   try { notes = JSON.parse(localStorage.getItem('ia_notes') || '{}'); } catch(e) { notes = {}; }
 }
 function saveStates() { try { localStorage.setItem('ia_states', JSON.stringify(states)); } catch(e) {} }
@@ -263,6 +266,12 @@ async function loadData() {
   }
 }
 
+function getCargo(id) { return cargo[id] || ''; }
+function setCargo(id, val) {
+  cargo[id] = val;
+  saveCargo();
+  fetch(API+'?action=setState&id='+encodeURIComponent(id)+'&state='+encodeURIComponent(getState(id))+'&cargo='+encodeURIComponent(val)).catch(()=>{});
+}
 function getState(id) { return states[id] || 'nuevo'; }
 function stateColor(s) {
   const m = { nuevo: 'var(--s-nuevo)', proceso: 'var(--s-proceso)', revision: 'var(--s-revision)', entregado: 'var(--s-entregado)', pausado: 'var(--s-pausado)' };
@@ -403,6 +412,12 @@ function openModal(id) {
       </div>
 
       <div class="status-bar">
+        <label>A cargo:</label>
+        <select style="font-family:'Jost',sans-serif;font-size:12px;padding:3px 8px;border-radius:20px;border:0.5px solid var(--border-strong);background:var(--white);color:var(--text)" onchange="setCargo('${id}',this.value)">
+          <option value=""${getCargo(id)===''?' selected':''}>—</option>
+          <option value="Mati"${getCargo(id)==='Mati'?' selected':''}>Mati</option>
+          <option value="Ale"${getCargo(id)==='Ale'?' selected':''}>Ale</option>
+        </select>
         <div class="status-dot" id="modal-dot-${id}" style="background:${stateColor(st)}"></div>
         <label>Estado:</label>
         <select onchange="setStatusModal('${id}',this)">
