@@ -246,7 +246,16 @@ async function loadData() {
     allRows = Object.values(rows).map((row, i) => {
       const obj = {};
       keys.forEach((k, j) => { if (k) obj[k] = (row[j] || '').toString().trim(); });
-      if(!obj.protagonistas && row[4]) obj.protagonistas = row[4].toString().trim();
+      // Force column mappings by index - override always
+      obj.protagonistas = (row[4]||'').toString().trim();
+      obj.fecha = (row[5]||'').toString().trim();
+      obj.horario = (row[6]||'').toString().trim();
+      obj.ubicacion = (row[7]||'').toString().trim();
+      obj.musica = (row[8]||'').toString().trim();
+      obj.cuenta_reg = (row[9]||'').toString().trim();
+      obj.dresscode = (row[11]||'').toString().trim();
+      obj.plan = (row[13]||'').toString().trim();
+      obj.modelo = (row[21]||'').toString().trim();
       obj._id = i + '_' + (obj.nombre || 'x').replace(/\s/g, '').substring(0, 8);
       return obj;
     }).filter(r => r.nombre);
