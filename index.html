@@ -109,6 +109,13 @@
   .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); }
   .legend-dot { width: 7px; height: 7px; border-radius: 50%; }
 
+  .card-nuevo { border-color: #E8923A !important; background: #FEF5ED !important; }
+  .card-proceso { border-color: #D4C84B !important; background: #FDFBE8 !important; }
+  .card-revision { border-color: #9B8EC4 !important; background: #F5F2FD !important; }
+  .card-entregado { border-color: #6BAA7A !important; background: #F0F9F2 !important; }
+  .card-pausado { border-color: #CC44BB !important; background: #FDF0FB !important; }
+  .card-pendiente { border-color: #C0392B !important; background: #FEF0EF !important; }
+
   @media (max-width: 640px) {
     .main { padding: 1rem; }
     .stats { grid-template-columns: repeat(3, 1fr); }
@@ -321,7 +328,7 @@ function iconSVG(name) {
 function cardHTML(r) {
   const st = getState(r._id);
   const plan = r.plan || '—';
-  return `<div class="card" id="card-${r._id}">
+  return `<div class="card card-${st}" id="card-${r._id}">
     <div class="card-click" onclick="openModal('${r._id}')">
       <div class="card-head">
         <div class="avatar ${avClass(r.tipo)}">${initials(r.nombre)}</div>
