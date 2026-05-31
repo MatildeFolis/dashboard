@@ -22,7 +22,6 @@
     --s-revision: #9B8EC4;
     --s-entregado: #6BAA7A;
     --s-pausado: #CC44BB;
-    --s-pendiente: #C0392B;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Jost', sans-serif; background: var(--cream); color: var(--text); font-size: 14px; line-height: 1.6; }
@@ -71,7 +70,6 @@
   .b-desde { background: #FDF0E0; color: #7A4A10; }
   .b-otro { background: var(--warm); color: var(--text-muted); }
 
-  .cargo-select { font-family: 'Jost', sans-serif; font-size: 11px; padding: 3px 7px; border-radius: 20px; border: 0.5px solid var(--border-strong); background: var(--cream); color: var(--text); cursor: pointer; outline: none; }
   .status-select { font-family: 'Jost', sans-serif; font-size: 11px; padding: 3px 8px; border-radius: 20px; border: 0.5px solid var(--border-strong); background: var(--cream); color: var(--text); cursor: pointer; outline: none; }
 
   .overlay { position: fixed; inset: 0; background: rgba(44,44,40,0.4); z-index: 200; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; overflow-y: auto; }
@@ -151,19 +149,13 @@
       <option value="Clásica">Clásica</option>
       <option value="Desde Cero">Desde Cero</option>
     </select>
-    <select id="f-cargo" onchange="render()">
-      <option value="">Mati y Ale</option>
-      <option value="Mati">Solo Mati</option>
-      <option value="Ale">Solo Ale</option>
-    </select>
     <select id="f-estado" onchange="render()">
       <option value="">Todos los estados</option>
       <option value="nuevo">Por arrancar</option>
       <option value="proceso">Preliminar</option>
       <option value="revision">En revisión</option>
       <option value="entregado">Entregada</option>
-      <option value="pausado">Quedan para más adelante</option>
-      <option value="pendiente">Esperando pago</option>
+      <option value="pausado">Pausado</option>
     </select>
   </div>
 
@@ -173,7 +165,8 @@
     <div class="legend-item"><div class="legend-dot" style="background:var(--s-proceso)"></div>Preliminar</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--s-revision)"></div>En revisión</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--s-entregado)"></div>Entregada</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--s-pausado)"></div>Pausado</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--s-pausado)"></div>Quedan para más adelante</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--s-pendiente)"></div>Esperando pago</div>
   </div>
 
   <div id="grid-area"><div class="loading">Cargando pedidos...</div></div>
@@ -185,16 +178,13 @@
 const API = 'https://script.google.com/macros/s/AKfycbzaFI31JOVmmqG8yVVR9FyNWJX42usHCo0BWHz7YBx131KOX-Wr2d8i8WCsuZHQdqmS/exec';
 let allRows = [];
 let states = {};
-let cargo = {};
 let notes = {};
 
 function loadLocal() {
   try { states = JSON.parse(localStorage.getItem('ia_states') || '{}'); } catch(e) { states = {}; }
   try { notes = JSON.parse(localStorage.getItem('ia_notes') || '{}'); } catch(e) { notes = {}; }
-  try { cargo = JSON.parse(localStorage.getItem('ia_cargo') || '{}'); } catch(e) { cargo = {}; }
 }
 function saveStates() { try { localStorage.setItem('ia_states', JSON.stringify(states)); } catch(e) {} }
-function saveCargo() { try { localStorage.setItem('ia_cargo', JSON.stringify(cargo)); } catch(e) {} }
 function saveNotes() { try { localStorage.setItem('ia_notes', JSON.stringify(notes)); } catch(e) {} }
 
 function shortKey(h) {
@@ -233,12 +223,8 @@ function shortKey(h) {
 async function loadData() {
   document.getElementById('grid-area').innerHTML = '<div class="loading">Cargando pedidos...</div>';
   try {
-    const [res, resStates] = await Promise.all([
-      fetch(API),
-      fetch(API + '?action=getStates').catch(()=>null)
-    ]);
+    const res = await fetch(API);
     if (!res.ok) throw new Error('Error ' + res.status);
-    if(resStates){try{const js=await resStates.json();if(js.states){states=js.states;}if(js.notes){notes=js.notes;}if(js.cargo){cargo=js.cargo;}}catch(e){}}
     const json = await res.json();
     const headers = json.headers;
     const rows = json.rows;
@@ -246,16 +232,6 @@ async function loadData() {
     allRows = Object.values(rows).map((row, i) => {
       const obj = {};
       keys.forEach((k, j) => { if (k) obj[k] = (row[j] || '').toString().trim(); });
-      // Force column mappings by index - override always
-      obj.protagonistas = (row[4]||'').toString().trim();
-      obj.fecha = (row[5]||'').toString().trim();
-      obj.horario = (row[6]||'').toString().trim();
-      obj.ubicacion = (row[7]||'').toString().trim();
-      obj.musica = (row[8]||'').toString().trim();
-      obj.cuenta_reg = (row[9]||'').toString().trim();
-      obj.dresscode = (row[11]||'').toString().trim();
-      obj.plan = (row[13]||'').toString().trim();
-      obj.modelo = (row[21]||'').toString().trim();
       obj._id = i + '_' + (obj.nombre || 'x').replace(/\s/g, '').substring(0, 8);
       return obj;
     }).filter(r => r.nombre);
@@ -266,15 +242,9 @@ async function loadData() {
   }
 }
 
-function getCargo(id) { return cargo[id] || ''; }
-function setCargo(id, val) {
-  cargo[id] = val;
-  saveCargo();
-  fetch(API+'?action=setState&id='+encodeURIComponent(id)+'&state='+encodeURIComponent(getState(id))+'&cargo='+encodeURIComponent(val)).catch(()=>{});
-}
 function getState(id) { return states[id] || 'nuevo'; }
 function stateColor(s) {
-  const m = { nuevo: 'var(--s-nuevo)', proceso: 'var(--s-proceso)', revision: 'var(--s-revision)', entregado: 'var(--s-entregado)', pausado: 'var(--s-pausado)', pendiente: 'var(--s-pendiente)' };
+  const m = { nuevo: 'var(--s-nuevo)', proceso: 'var(--s-proceso)', revision: 'var(--s-revision)', entregado: 'var(--s-entregado)', pausado: 'var(--s-pausado)' };
   return m[s] || m.nuevo;
 }
 
@@ -315,12 +285,10 @@ function fmtDate(s) {
 function render() {
   const q = document.getElementById('search').value.toLowerCase();
   const ft = document.getElementById('f-tipo').value;
-  const fc = document.getElementById('f-cargo').value;
   const fp = document.getElementById('f-plan').value;
   const fe = document.getElementById('f-estado').value;
   let rows = allRows.filter(r => {
     if (ft && !(r.tipo || '').includes(ft)) return false;
-    if (fc && getCargo(r._id) !== fc) return false;
     if (fp && !(r.plan || '').toLowerCase().includes(fp.toLowerCase())) return false;
     if (fe && getState(r._id) !== fe) return false;
     if (q) { const h = [r.nombre, r.modelo, r.tipo, r.protagonistas, r.plan, r.fecha].join(' ').toLowerCase(); if (!h.includes(q)) return false; }
@@ -361,18 +329,12 @@ function cardHTML(r) {
     </div>
     <div class="card-footer">
       <span class="badge ${bClass(plan)}">${plan}</span>
-      <select class="cargo-select" onchange="setCargo('${r._id}',this.value)" onclick="event.stopPropagation()">
-        <option value=""${getCargo(r._id)===''?' selected':''}>—</option>
-        <option value="Mati"${getCargo(r._id)==='Mati'?' selected':''}>Mati</option>
-        <option value="Ale"${getCargo(r._id)==='Ale'?' selected':''}>Ale</option>
-      </select>
       <select class="status-select" onchange="setStatus('${r._id}',this.value)" onclick="event.stopPropagation()">
         <option value="nuevo"${st==='nuevo'?' selected':''}>Por arrancar</option>
         <option value="proceso"${st==='proceso'?' selected':''}>Preliminar</option>
         <option value="revision"${st==='revision'?' selected':''}>En revisión</option>
         <option value="entregado"${st==='entregado'?' selected':''}>Entregada</option>
-        <option value="pausado"${st==='pausado'?' selected':''}>Quedan para más adelante</option>
-        <option value="pendiente"${st==='pendiente'?' selected':''}>Esperando pago</option>
+        <option value="pausado"${st==='pausado'?' selected':''}>Pausado</option>
       </select>
     </div>
   </div>`;
@@ -418,13 +380,6 @@ function openModal(id) {
       </div>
 
       <div class="status-bar">
-        <label>A cargo:</label>
-        <select style="font-family:'Jost',sans-serif;font-size:12px;padding:3px 8px;border-radius:20px;border:0.5px solid var(--border-strong);background:var(--white);color:var(--text)" onchange="setCargo('${id}',this.value)">
-          <option value=""${getCargo(id)===''?' selected':''}>—</option>
-          <option value="Mati"${getCargo(id)==='Mati'?' selected':''}>Mati</option>
-          <option value="Ale"${getCargo(id)==='Ale'?' selected':''}>Ale</option>
-        </select>
-        <span style="margin-left:8px;font-size:12px;color:var(--text-muted)">Estado:</span>
         <div class="status-dot" id="modal-dot-${id}" style="background:${stateColor(st)}"></div>
         <label>Estado:</label>
         <select onchange="setStatusModal('${id}',this)">
@@ -432,8 +387,7 @@ function openModal(id) {
           <option value="proceso"${st==='proceso'?' selected':''}>Preliminar</option>
           <option value="revision"${st==='revision'?' selected':''}>En revisión</option>
           <option value="entregado"${st==='entregado'?' selected':''}>Entregada</option>
-          <option value="pausado"${st==='pausado'?' selected':''}>Quedan para más adelante</option>
-          <option value="pendiente"${st==='pendiente'?' selected':''}>Esperando pago</option>
+          <option value="pausado"${st==='pausado'?' selected':''}>Pausado</option>
         </select>
       </div>
 
