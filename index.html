@@ -246,6 +246,7 @@ async function loadData() {
     allRows = Object.values(rows).map((row, i) => {
       const obj = {};
       keys.forEach((k, j) => { if (k) obj[k] = (row[j] || '').toString().trim(); });
+      if(!obj.protagonistas && row[4]) obj.protagonistas = row[4].toString().trim();
       obj._id = i + '_' + (obj.nombre || 'x').replace(/\s/g, '').substring(0, 8);
       return obj;
     }).filter(r => r.nombre);
